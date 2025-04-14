@@ -1,5 +1,6 @@
 main {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 100vh;
@@ -10,11 +11,11 @@ main {
   grid-template-columns: repeat(9, 50px);
   grid-template-rows: repeat(9, 50px);
   gap: 1px;
-  border: 1px solid red;
 }
 
 .square {
   border: 1px solid black;
   display: flex;
   justify-content: center;
+  align-items: center;
 }

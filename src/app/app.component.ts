@@ -1,9 +1,35 @@
 import { Component, computed, OnInit, signal } from '@angular/core';
 
 class Square {
-  constructor(public x: number, public y: number, public value: number) {}
+  constructor(
+    public row: number,
+    public column: number,
+    public value: number
+  ) {}
 
   isVisible = false;
+  isFlag = false;
+
+  toggleFlag(e?: MouseEvent) {
+    e?.preventDefault();
+    this.isFlag = !this.isFlag;
+  }
+
+  toggleVisibility() {
+    this.isVisible = !this.isVisible;
+  }
+
+  get isRightFlag(): boolean {
+    return this.isBomb && this.isFlag;
+  }
+
+  get isBomb(): boolean {
+    return this.value === -1;
+  }
+
+  get isZero(): boolean {
+    return this.value === 0;
+  }
 }
 
 enum GameLevelEnum {
@@ -22,8 +48,11 @@ export class AppComponent implements OnInit {
   title = 'minesweeper';
   squares = signal<Square[][]>([]);
   level = signal<GameLevelEnum>(GameLevelEnum.EASY);
-
   bombsIndexes: Set<string> = new Set();
+  hasExploded = signal(false);
+  loading = signal(false);
+  isLoading = signal(false);
+  hasWon = signal(false);
 
   get rows(): number {
     return [9, 20, 30][this.level()];
@@ -34,11 +63,90 @@ export class AppComponent implements OnInit {
   }
 
   get bombsQuantity(): number {
-    return [10, 40, 99][this.level()];
+    return [1, 40, 99][this.level()];
   }
 
   ngOnInit() {
+    this.reset();
+  }
+
+  reset() {
+    this.isLoading.set(true);
+
+    this.hasExploded.set(false);
+    this.bombsIndexes = new Set();
     this.setSquares();
+
+    this.isLoading.set(false);
+  }
+
+  select(square: Square) {
+    if (square.isFlag) return;
+
+    square.toggleVisibility();
+
+    if (square.isBomb) {
+      this.hasExploded.set(true);
+    } else if (square.isZero) {
+      this.setZero(square);
+    }
+  }
+
+  setZero({ row, column }: Square): void {
+    const squaresAround = this.getPositionsAround(row, column).map(
+      (position) => {
+        const [pRow, pColumn] = position.split(',').map(Number);
+
+        return this.squares()[pRow][pColumn];
+      }
+    );
+
+    for (const squareAround of squaresAround) {
+      if (
+        squareAround.isBomb ||
+        (squareAround.isZero && squareAround.isVisible)
+      )
+        continue;
+
+      squareAround.isVisible = true;
+
+      if (squareAround.isZero) {
+        this.setZero(squareAround);
+      }
+    }
+  }
+
+  getPositionsAround(row: number, column: number): string[] {
+    const rPositions = [
+      row,
+      row + 1, // top
+      row - 1, // bottom
+    ];
+    const cPositions = [
+      column,
+      column - 1, // left
+      column + 1, // right
+    ];
+
+    const pos = [];
+
+    for (const rPosition of rPositions) {
+      if (rPosition < 0 || rPosition >= this.rows) continue;
+
+      for (const cPosition of cPositions) {
+        if (
+          cPosition < 0 ||
+          cPosition >= this.columns ||
+          (cPosition === column && rPosition === row)
+        ) {
+          continue;
+        }
+
+        pos.push(`${rPosition},${cPosition}`);
+      }
+    }
+
+    return pos;
   }
 
   setSquares() {
@@ -47,52 +155,31 @@ export class AppComponent implements OnInit {
 
     for (let row = 0; row < this.rows; row++) {
       squares[row] ??= [];
+
       for (let column = 0; column < this.columns; column++) {
-        // squares[column] ??= [];
-        if (this.bombsIndexes.has(`${row}${column}`)) {
+        if (this.bombsIndexes.has(`${row},${column}`)) {
           squares[row].push(new Square(row, column, -1));
         } else {
-          const around = [
-            `${row - 1}${column - 1}`, // top-left
-            `${row - 1}${column}`, // top
-            `${row - 1}${column + 1}`, // top-right
-            `${row}${column + 1}`, // right
-            `${row + 1}${column + 1}`, // bottom-right
-            `${row + 1}${column}`, // bottom
-            `${row + 1}${column - 1}`, // bottom-left
-            `${row}${column - 1}`, // left
-          ];
+          const around = this.getPositionsAround(row, column);
 
-          if (row === 0 && column === 0) {
-            console.log(around);
-          }
-
-          const bombsAround = around.filter((c) => {
-            if (row === 0 && column === 0) {
-              console.log(this.bombsIndexes.has(c));
-            }
-            return this.bombsIndexes.has(c);
-          }).length;
+          const bombsAround = around.filter((c) =>
+            this.bombsIndexes.has(c)
+          ).length;
 
           squares[row].push(new Square(row, column, bombsAround));
         }
       }
     }
 
-    console.log(squares);
-
     this.squares.set(squares);
   }
 
-  // choose
   setBombsPosition() {
     while (this.bombsIndexes.size < this.bombsQuantity) {
-      const cIdx = (Math.random() * this.columns).toFixed(0);
-      const rIdx = (Math.random() * this.rows).toFixed(0);
+      const column = (Math.random() * this.columns).toFixed(0);
+      const row = (Math.random() * this.rows).toFixed(0);
 
-      this.bombsIndexes.add(rIdx + cIdx);
+      this.bombsIndexes.add(`${row},${column}`);
     }
   }
-
-  setNumbers() {}
 }
