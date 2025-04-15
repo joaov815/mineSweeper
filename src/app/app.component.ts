@@ -29,77 +29,111 @@ export class AppComponent implements OnInit {
   boardDimension = 9;
   bombsQuantity = signal(10);
   flagsPlaced = signal(0);
+  gameStarted = signal(false);
+  gameOver = computed(() => this.hasWon() || this.hasExploded());
   bombsLeft = computed(() =>
     Math.max(this.bombsQuantity() - this.flagsPlaced(), 0)
   );
   gameInterval!: any;
-  gameStarted = false;
 
   ngOnInit(): void {
     this.reset();
   }
 
-  startTimer(): void {
-    this.gameStarted = true;
+  reset(): void {
+    clearInterval(this.gameInterval);
+
+    this.gameStarted.set(false);
+    this.isLoading.set(true);
+    this.gameTimeInSeconds.set(0);
+
+    this.hasWon.set(false);
+    this.hasExploded.set(false);
+    this.bombsIndexes = new Set();
+    this._setSquares();
+
+    this.isLoading.set(false);
+  }
+
+  private _checkHasWon(): void {
+    const hasWon =
+      this.squares.filter((s) => !s.isVisible).length === this.bombsQuantity();
+
+    if (hasWon) this._endGame(hasWon);
+  }
+
+  private _endGame(hasWon: boolean) {
+    this.hasWon.set(hasWon);
+    this.hasExploded.set(!hasWon);
+
+    clearInterval(this.gameInterval);
+
+    if (this.hasExploded()) {
+      this.squares.forEach((sq) => {
+        sq.isVisible = sq.isVisible || sq.isBomb;
+      });
+    } else {
+      this.squares.forEach((s) => {
+        if (s.isBomb) s.isFlag = true;
+      });
+      this.flagsPlaced.set(this.bombsQuantity())
+    }
+  }
+
+  select(square: Square): void {
+    if (square.isFlag || this.gameOver()) return;
+    if (!this.gameTimeInSeconds() && !this.gameStarted()) this._startTimer();
+
+    square.isVisible = true;
+
+    if (square.isBomb) {
+      this._endGame(false);
+
+      square.isRedBomb = true;
+
+      return;
+    }
+
+    if (square.isZero) this._setZero(square);
+
+    this._checkHasWon();
+  }
+
+  toggleFlag(square: Square, event: MouseEvent) {
+    event.preventDefault();
+
+    if (this.hasExploded()) return;
+    if (!this.gameTimeInSeconds() && !this.gameStarted()) this._startTimer();
+
+    square.toggleFlag();
+
+    this.flagsPlaced.update((v) => (square.isFlag ? v + 1 : v - 1));
+  }
+
+  private _startTimer(): void {
+    this.gameStarted.set(true);
     this.gameInterval = setInterval(() => {
       this.gameTimeInSeconds.update((val) => val + 1);
     }, 1000);
   }
 
-  reset(): void {
-    this.gameStarted = false;
-    this.isLoading.set(true);
-    this.gameTimeInSeconds.set(0);
-
-    this.hasExploded.set(false);
-    this.bombsIndexes = new Set();
-    this.setSquares();
-
-    this.isLoading.set(false);
-  }
-
-  select(square: Square): void {
-    if (square.isFlag || this.hasExploded()) return;
-    if (!this.gameTimeInSeconds() && !this.gameStarted) this.startTimer();
-
-    square.isVisible = true;
-
-    if (square.isBomb) {
-      this.hasExploded.set(true);
-      clearInterval(this.gameInterval);
-
-      this.squares.forEach((sq) => {
-        if (sq.isBomb) {
-          sq.isVisible = true;
-        }
-      });
-      square.isRedBomb = true;
-    } else if (square.isZero) {
-      this.setZero(square);
-    }
-  }
-
-  setZero({ row, column }: Square): void {
-    const squaresAround = this.getPositionsAround(row, column).map(
+  private _setZero({ row, column }: Square): void {
+    const squaresAround = this._getPositionsAround(row, column).map(
       (position) => this.squares.find((s) => s.position === position)!
     );
 
-    for (const squareAround of squaresAround) {
-      if (
-        squareAround.isBomb ||
-        (squareAround.isZero && squareAround.isVisible)
-      )
-        continue;
+    for (const square of squaresAround) {
+      const { isBomb, isZero, isVisible } = square;
 
-      squareAround.isVisible = true;
+      if (isBomb || (isZero && isVisible)) continue;
 
-      if (squareAround.isZero) {
-        this.setZero(squareAround);
-      }
+      square.isVisible = true;
+
+      if (isZero) this._setZero(square);
     }
   }
 
-  getPositionsAround(row: number, column: number): string[] {
+  private _getPositionsAround(row: number, column: number): string[] {
     const rPositions = [row, row + 1, row - 1];
     const cPositions = [column, column - 1, column + 1];
 
@@ -124,16 +158,25 @@ export class AppComponent implements OnInit {
     return result;
   }
 
-  setSquares(): void {
+  private _setBombsPosition(): void {
+    while (this.bombsIndexes.size < this.bombsQuantity()) {
+      const column = (Math.random() * (this.boardDimension - 1)).toFixed(0);
+      const row = (Math.random() * (this.boardDimension - 1)).toFixed(0);
+
+      this.bombsIndexes.add(`${row},${column}`);
+    }
+  }
+
+  private _setSquares(): void {
     this.squares = [];
-    this.setBombsPosition();
+    this._setBombsPosition();
 
     for (let row = 0; row < this.boardDimension; row++) {
       for (let column = 0; column < this.boardDimension; column++) {
         if (this.bombsIndexes.has(`${row},${column}`)) {
           this.squares.push(new Square(row, column, -1));
         } else {
-          const around = this.getPositionsAround(row, column);
+          const around = this._getPositionsAround(row, column);
 
           const bombsAround = around.filter((c) =>
             this.bombsIndexes.has(c)
@@ -143,24 +186,5 @@ export class AppComponent implements OnInit {
         }
       }
     }
-  }
-
-  setBombsPosition(): void {
-    while (this.bombsIndexes.size < this.bombsQuantity()) {
-      const column = (Math.random() * (this.boardDimension - 1)).toFixed(0);
-      const row = (Math.random() * (this.boardDimension - 1)).toFixed(0);
-
-      this.bombsIndexes.add(`${row},${column}`);
-    }
-  }
-
-  toggleFlag(square: Square, event: MouseEvent) {
-    event.preventDefault();
-
-    if (this.hasExploded()) return;
-    if (!this.gameTimeInSeconds() && !this.gameStarted) this.startTimer();
-
-    square.toggleFlag();
-    this.flagsPlaced.update((v) => (square.isFlag ? v + 1 : v - 1));
   }
 }

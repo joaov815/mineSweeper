@@ -11,7 +11,7 @@
           face_win: !hasExploded() && hasWon(),
           face_pressed: isLoading()
         }"
-        (click)="reset()"
+        (click)="gameStarted() && reset()"
       ></div>
 
       <app-counter [value]="gameTimeInSeconds()" />
