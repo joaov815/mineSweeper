@@ -1,27 +1,35 @@
-# Minesweeper
+# 🧨 Campo Minado (Minesweeper) - Angular
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.6.
+![Minesweeper UI](./public/images/screenshot.png)
 
-## Development server
+> Um jogo clássico recriado com Angular 18, sinais e muito estilo retrô.  
+> A classic game recreated using Angular 18, signals, and retro style.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+---
 
-## Code scaffolding
+## 🧩 Sobre o projeto | About the project
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+### 🇧🇷 Português  
+Este é um jogo de Campo Minado feito com Angular, utilizando sinais (`signals`), componentes reativos e CSS puro para recriar o visual clássico do Windows 98.  
+Você pode escolher entre três níveis de dificuldade: **Fácil**, **Médio** e **Difícil**.
 
-## Build
+### 🇺🇸 English  
+This is a Minesweeper game built with Angular, using `signals`, reactive components and pure CSS to replicate the classic Windows 98 style.  
+You can choose between three difficulty levels: **Easy**, **Medium**, and **Hard**.
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+---
 
-## Running unit tests
+## 📸 Screenshot
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+<img src="./public/images/screenshot.png" width="300" />
 
-## Running end-to-end tests
+---
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+## 🚀 Como executar localmente | How to run locally
 
-## Further help
+```bash
+# Instale as dependências
+npm install
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+# Inicie o servidor de desenvolvimento
+ng serve
