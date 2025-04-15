@@ -29,7 +29,7 @@
       class="board"
       [ngStyle]="{
         'grid-template-columns': 'repeat(' + boardDimension() +  (level() === 2 ? ', 20px)' : ', 30px)'),
-        'grid-template-rows':  'repeat(' + boardDimension() +  (level() === 2 ? ', 20px)' : ', 30px)'),
+        'grid-template-rows': 'repeat(' + boardDimension() +  (level() === 2 ? ', 20px)' : ', 30px)'),
       }"
     >
       @for(square of squares; let c = $index; track c) {

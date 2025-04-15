@@ -13,7 +13,7 @@ enum GameLevelEnum {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CounterComponent, NgStyle, NgClass],
+  imports: [CounterComponent, NgClass, NgStyle],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
