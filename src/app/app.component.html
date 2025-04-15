@@ -1,28 +1,36 @@
 <main>
-  <div>
-    <button (click)="reset()">
-      {{ hasExploded() ? "Restart" : "Start" }}
-    </button>
-  </div>
-
-  @if(isLoading()) {
-  <div>loading...</div>
-  } @else {
-  <div class="board">
-    @for(square of squares; let c = $index; track c) {
-    <div
-      class="square"
-      (click)="select(square)"
-      (contextmenu)="toggleFlag(square, $event)"
-    >
+  <div class="container">
+    <div class="top-bar">
+      <div class="counter">000</div>
       <div
-        class="square-bg"
-        [ngStyle]="{
-          'background-image': 'url(\'/images/' + square.bg + '.svg\')'
+        class="face"
+        [ngClass]="{
+          face_lose: hasExploded(),
+          face_unpressed: !hasExploded() && !hasWon(),
+          face_win: !hasExploded() && hasWon(),
+          face_pressed: isLoading()
         }"
+        (click)="reset()"
       ></div>
+      <div class="counter">010</div>
     </div>
-    }
+
+    <div class="board">
+      @for(square of squares; let c = $index; track c) {
+      <div
+        class="square"
+        (click)="select(square)"
+        (contextmenu)="toggleFlag(square, $event)"
+      >
+        <div
+          class="square-bg"
+          [ngClass]="{ 'closed': !square.isVisible && !hasExploded() && !hasWon(), }"
+          [ngStyle]="{
+            'background-image': 'url(\'/images/' + square.bg + '.svg\')'
+          }"
+        ></div>
+      </div>
+      }
+    </div>
   </div>
-  }
 </main>

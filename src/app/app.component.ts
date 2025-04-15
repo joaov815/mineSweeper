@@ -1,6 +1,7 @@
-import { Component, computed, OnInit, signal } from '@angular/core';
-import { Square } from './square';
+import { Component, OnInit, signal } from '@angular/core';
 import { NgClass, NgStyle } from '@angular/common';
+
+import { Square } from './square';
 
 enum GameLevelEnum {
   EASY,
@@ -21,6 +22,7 @@ export class AppComponent implements OnInit {
   level = signal<GameLevelEnum>(GameLevelEnum.EASY);
   bombsIndexes: Set<string> = new Set();
   hasExploded = signal(false);
+  hasWon = signal(false);
   loading = signal(false);
   isLoading = signal(false);
   boardDimension = 9;
@@ -53,7 +55,7 @@ export class AppComponent implements OnInit {
           sq.isVisible = true;
         }
       });
-      square.isRedBomb = true
+      square.isRedBomb = true;
     } else if (square.isZero) {
       this.setZero(square);
     }
@@ -128,8 +130,8 @@ export class AppComponent implements OnInit {
 
   setBombsPosition(): void {
     while (this.bombsIndexes.size < this.bombsQuantity) {
-      const column = (Math.random() * this.boardDimension).toFixed(0);
-      const row = (Math.random() * this.boardDimension).toFixed(0);
+      const column = (Math.random() * (this.boardDimension - 1)).toFixed(0);
+      const row = (Math.random() * (this.boardDimension - 1)).toFixed(0);
 
       this.bombsIndexes.add(`${row},${column}`);
     }

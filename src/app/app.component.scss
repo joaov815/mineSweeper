@@ -4,23 +4,64 @@ $b2: #1c1c1c;
 $b3: #202224;
 $b4: #3b4042;
 
+* {
+  padding: 0;
+  margin: 0;
+}
+
 main {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 100vh;
+
+  background-color: $b1;
+}
+
+.top-bar {
+  height: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 10px;
+  margin-bottom: 5px;
+  background: #bdbdbd;
+  border: 2px solid #808080;
+  border-top-color: #fff;
+  border-left-color: #fff;
+  border-bottom-color: #404040;
+  border-right-color: #404040;
+}
+
+.container {
+  margin: 50px auto;
+  padding: 10px;
+  background: #bdbdbd;
+  border: 4px solid #808080;
+  border-top-color: #fff;
+  border-left-color: #fff;
+  border-bottom-color: #404040;
+  border-right-color: #404040;
+  width: max-content;
 }
 
 .board {
   display: grid;
   grid-template-columns: repeat(9, 50px);
   grid-template-rows: repeat(9, 50px);
-  // gap: 1px;
+
+  gap: 1px;
+  background: #bdbdbd;
+  padding: 4px;
+  border: 3px solid #808080;
+  border-top-color: #fff;
+  border-left-color: #fff;
+  border-bottom-color: #404040;
+  border-right-color: #404040;
 }
 
 .square {
-  // border: 1px solid black;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -28,30 +69,39 @@ main {
   line-height: 23px;
 
   .square-bg {
-    background-size: cover; /* Optional: makes it fit perfectly */
-    background-repeat: no-repeat; /* Optional: avoid repeating */
-    background-position: center; /* Optional: center it */
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
     height: 100%;
     width: 100%;
   }
 
   .closed {
-    background-image: url("/images/closed.svg");
+    cursor: pointer;
   }
+}
 
-  .empty {
-    background-image: url("/images/s_0.svg");
-  }
+.face {
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  height: 40px;
+  width: 40px;
+  cursor: pointer;
+}
 
-  .flag {
-    background-image: url("/images/flag.svg");
-  }
+.face_lose {
+  background-image: url("/images/face_lose.svg");
+}
 
-  .mine {
-    background-image: url("/images/mine.svg");
-  }
+.face_unpressed {
+  background-image: url("/images/face_unpressed.svg");
+}
 
-  .red {
-    background-image: url("/images/mine_red.svg");
-  }
+.face_win {
+  background-image: url("/images/face_win.svg");
+}
+
+.face_pressed {
+  background-image: url("/images/face_pressed.svg");
 }

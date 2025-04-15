@@ -35,6 +35,7 @@ export class Square {
 
   get bg(): string {
     if (this.value >= 0 && this.isVisible) return `s_${this.value}`;
+    if (this.isRedBomb) return 'mine_red';
 
     const conditions: Record<string, boolean> = {
       mine: this.isVisible && this.isBomb,
