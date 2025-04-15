@@ -18,7 +18,6 @@ enum GameLevelEnum {
   styleUrl: './app.component.scss',
 })
 export class AppComponent implements OnInit {
-  title = 'minesweeper';
   squares: Square[] = [];
   level = signal<GameLevelEnum>(GameLevelEnum.EASY);
   hasExploded = signal(false);
@@ -34,18 +33,21 @@ export class AppComponent implements OnInit {
     Math.max(this.bombsQuantity() - this.flagsPlaced(), 0)
   );
   gameInterval!: any;
+  gameStarted = false;
 
   ngOnInit(): void {
     this.reset();
   }
 
   startTimer(): void {
+    this.gameStarted = true;
     this.gameInterval = setInterval(() => {
       this.gameTimeInSeconds.update((val) => val + 1);
     }, 1000);
   }
 
   reset(): void {
+    this.gameStarted = false;
     this.isLoading.set(true);
     this.gameTimeInSeconds.set(0);
 
@@ -57,8 +59,8 @@ export class AppComponent implements OnInit {
   }
 
   select(square: Square): void {
-    if (!this.gameTimeInSeconds()) this.startTimer();
     if (square.isFlag || this.hasExploded()) return;
+    if (!this.gameTimeInSeconds() && !this.gameStarted) this.startTimer();
 
     square.isVisible = true;
 
@@ -100,7 +102,8 @@ export class AppComponent implements OnInit {
   getPositionsAround(row: number, column: number): string[] {
     const rPositions = [row, row + 1, row - 1];
     const cPositions = [column, column - 1, column + 1];
-    const result = [];
+
+    const result: string[] = [];
 
     for (const rPosition of rPositions) {
       if (rPosition < 0 || rPosition >= this.boardDimension) continue;
@@ -122,6 +125,7 @@ export class AppComponent implements OnInit {
   }
 
   setSquares(): void {
+    this.squares = [];
     this.setBombsPosition();
 
     for (let row = 0; row < this.boardDimension; row++) {
@@ -154,6 +158,7 @@ export class AppComponent implements OnInit {
     event.preventDefault();
 
     if (this.hasExploded()) return;
+    if (!this.gameTimeInSeconds() && !this.gameStarted) this.startTimer();
 
     square.toggleFlag();
     this.flagsPlaced.update((v) => (square.isFlag ? v + 1 : v - 1));
