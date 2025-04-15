@@ -1,5 +1,10 @@
 <main>
   <div class="container">
+    <div class="level-container">
+      <div (click)="setLevel(0)">Fácil</div>
+      <div (click)="setLevel(1)">Médio</div>
+      <div (click)="setLevel(2)">Difícil</div>
+    </div>
     <div class="top-bar">
       <app-counter [value]="bombsLeft()" />
 
@@ -17,7 +22,13 @@
       <app-counter [value]="gameTimeInSeconds()" />
     </div>
 
-    <div class="board">
+    <div
+      class="board"
+      [ngStyle]="{
+        'grid-template-columns': 'repeat(' + boardDimension() +  (level() === 2 ? ', 20px)' : ', 30px)'),
+        'grid-template-rows':  'repeat(' + boardDimension() +  (level() === 2 ? ', 20px)' : ', 30px)'),
+      }"
+    >
       @for(square of squares; let c = $index; track c) {
       <div
         class="square"

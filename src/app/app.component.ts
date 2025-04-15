@@ -26,7 +26,7 @@ export class AppComponent implements OnInit {
   isLoading = signal(false);
   gameTimeInSeconds = signal(0);
   bombsIndexes: Set<string> = new Set();
-  boardDimension = 9;
+  boardDimension = signal(9);
   bombsQuantity = signal(10);
   flagsPlaced = signal(0);
   gameStarted = signal(false);
@@ -37,6 +37,15 @@ export class AppComponent implements OnInit {
   gameInterval!: any;
 
   ngOnInit(): void {
+    this.reset();
+  }
+
+  setLevel(level: GameLevelEnum) {
+    this.level.set(level);
+
+    this.boardDimension.set([9, 16, 30][level]);
+    this.bombsQuantity.set([10, 40, 99][level]);
+
     this.reset();
   }
 
@@ -140,12 +149,12 @@ export class AppComponent implements OnInit {
     const result: string[] = [];
 
     for (const rPosition of rPositions) {
-      if (rPosition < 0 || rPosition >= this.boardDimension) continue;
+      if (rPosition < 0 || rPosition >= this.boardDimension()) continue;
 
       for (const cPosition of cPositions) {
         if (
           cPosition < 0 ||
-          cPosition >= this.boardDimension ||
+          cPosition >= this.boardDimension() ||
           (cPosition === column && rPosition === row)
         ) {
           continue;
@@ -163,7 +172,7 @@ export class AppComponent implements OnInit {
     this.bombsIndexes = new Set();
 
     const getRandomAxis = () =>
-      (Math.random() * (this.boardDimension - 1)).toFixed(0);
+      (Math.random() * (this.boardDimension() - 1)).toFixed(0);
 
     // set bombs position
     while (this.bombsIndexes.size < this.bombsQuantity()) {
@@ -171,8 +180,8 @@ export class AppComponent implements OnInit {
     }
 
     // set squares
-    for (let row = 0; row < this.boardDimension; row++) {
-      for (let column = 0; column < this.boardDimension; column++) {
+    for (let row = 0; row < this.boardDimension(); row++) {
+      for (let column = 0; column < this.boardDimension(); column++) {
         let squareValue = 0;
 
         if (this.bombsIndexes.has(`${row},${column}`)) {
