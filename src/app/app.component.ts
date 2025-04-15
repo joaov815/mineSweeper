@@ -19,28 +19,29 @@ enum GameLevelEnum {
 })
 export class AppComponent implements OnInit {
   squares: Square[] = [];
-  level = signal<GameLevelEnum>(GameLevelEnum.EASY);
-  hasExploded = signal(false);
-  hasWon = signal(false);
-  loading = signal(false);
-  buttonPressed = signal(false);
-  gameTimeInSeconds = signal(0);
   bombsIndexes: Set<string> = new Set();
-  boardDimension = signal(9);
-  bombsQuantity = signal(10);
-  flagsPlaced = signal(0);
+  gameInterval!: any;
+
+  level = signal(GameLevelEnum.EASY);
+  hasWon = signal(false);
+  hasExploded = signal(false);
+  buttonPressed = signal(false);
   gameStarted = signal(false);
+  gameTimeInSeconds = signal(0);
+  bombsQuantity = signal(10);
+  boardDimension = signal(9);
+  flagsPlaced = signal(0);
+
   gameOver = computed(() => this.hasWon() || this.hasExploded());
   bombsLeft = computed(() =>
     Math.max(this.bombsQuantity() - this.flagsPlaced(), 0)
   );
-  gameInterval!: any;
 
   ngOnInit(): void {
     this.reset();
   }
 
-  setLevel(level: GameLevelEnum) {
+  setLevel(level: GameLevelEnum): void {
     this.level.set(level);
 
     this.boardDimension.set([9, 16, 30][level]);
@@ -68,7 +69,7 @@ export class AppComponent implements OnInit {
     this._checkHasWon();
   }
 
-  toggleFlag(square: Square, event: MouseEvent) {
+  toggleFlag(square: Square, event: MouseEvent): void {
     event.preventDefault();
 
     if (this.gameOver() || square.isVisible) return;
@@ -82,12 +83,15 @@ export class AppComponent implements OnInit {
   reset(): void {
     clearInterval(this.gameInterval);
 
+    this.hasWon.set(false);
+    this.hasExploded.set(false);
     this.gameStarted.set(false);
     this.gameTimeInSeconds.set(0);
     this.flagsPlaced.set(0);
 
-    this.hasWon.set(false);
-    this.hasExploded.set(false);
+    this.squares = [];
+    this.bombsIndexes = new Set();
+
     this._setSquares();
   }
 
@@ -98,7 +102,7 @@ export class AppComponent implements OnInit {
     if (hasWon) this._endGame(hasWon);
   }
 
-  private _endGame(hasWon: boolean) {
+  private _endGame(hasWon: boolean): void {
     this.hasWon.set(hasWon);
     this.hasExploded.set(!hasWon);
 
@@ -140,24 +144,21 @@ export class AppComponent implements OnInit {
   }
 
   private _getPositionsAround(row: number, column: number): string[] {
-    const rPositions = [row, row + 1, row - 1];
-    const cPositions = [column, column - 1, column + 1];
+    const rows = [row, row + 1, row - 1];
+    const columns = [column, column - 1, column + 1];
 
     const result: string[] = [];
+    const isInvalidAxis = (a: number) => a < 0 || a >= this.boardDimension();
 
-    for (const rPosition of rPositions) {
-      if (rPosition < 0 || rPosition >= this.boardDimension()) continue;
+    for (const r of rows) {
+      if (isInvalidAxis(r)) continue;
 
-      for (const cPosition of cPositions) {
-        if (
-          cPosition < 0 ||
-          cPosition >= this.boardDimension() ||
-          (cPosition === column && rPosition === row)
-        ) {
+      for (const c of columns) {
+        if (isInvalidAxis(c) || (c === column && r === row)) {
           continue;
         }
 
-        result.push(`${rPosition},${cPosition}`);
+        result.push(`${r},${c}`);
       }
     }
 
@@ -165,9 +166,6 @@ export class AppComponent implements OnInit {
   }
 
   private _setSquares(): void {
-    this.squares = [];
-    this.bombsIndexes = new Set();
-
     const getRandomAxis = () =>
       (Math.random() * (this.boardDimension() - 1)).toFixed(0);
 
@@ -177,20 +175,18 @@ export class AppComponent implements OnInit {
     }
 
     // set squares
-    for (let row = 0; row < this.boardDimension(); row++) {
-      for (let column = 0; column < this.boardDimension(); column++) {
-        let squareValue = 0;
+    for (let s = 0; s < this.boardDimension() ** 2; s++) {
+      const row = Math.floor(s / this.boardDimension());
+      const column = s % this.boardDimension();
+      let squareValue = -1;
 
-        if (this.bombsIndexes.has(`${row},${column}`)) {
-          squareValue = -1;
-        } else {
-          squareValue = this._getPositionsAround(row, column).filter((c) =>
-            this.bombsIndexes.has(c)
-          ).length;
-        }
-
-        this.squares.push(new Square(row, column, squareValue));
+      if (!this.bombsIndexes.has(`${row},${column}`)) {
+        squareValue = this._getPositionsAround(row, column).filter((c) =>
+          this.bombsIndexes.has(c)
+        ).length;
       }
+
+      this.squares.push(new Square(row, column, squareValue));
     }
   }
 }
