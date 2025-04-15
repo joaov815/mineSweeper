@@ -14,9 +14,11 @@
           face_lose: hasExploded(),
           face_unpressed: !hasExploded() && !hasWon(),
           face_win: !hasExploded() && hasWon(),
-          face_pressed: isLoading()
+          face_pressed: buttonPressed()
         }"
         (click)="gameStarted() && reset()"
+        (mousedown)="buttonPressed.set(true)"
+        (mouseup)="buttonPressed.set(false)"
       ></div>
 
       <app-counter [value]="gameTimeInSeconds()" />

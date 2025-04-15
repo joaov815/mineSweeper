@@ -23,7 +23,7 @@ export class AppComponent implements OnInit {
   hasExploded = signal(false);
   hasWon = signal(false);
   loading = signal(false);
-  isLoading = signal(false);
+  buttonPressed = signal(false);
   gameTimeInSeconds = signal(0);
   bombsIndexes: Set<string> = new Set();
   boardDimension = signal(9);
@@ -83,15 +83,12 @@ export class AppComponent implements OnInit {
     clearInterval(this.gameInterval);
 
     this.gameStarted.set(false);
-    this.isLoading.set(true);
     this.gameTimeInSeconds.set(0);
     this.flagsPlaced.set(0);
 
     this.hasWon.set(false);
     this.hasExploded.set(false);
     this._setSquares();
-
-    this.isLoading.set(false);
   }
 
   private _checkHasWon(): void {
