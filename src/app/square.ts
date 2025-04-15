@@ -9,14 +9,6 @@ export class Square {
   isFlag = false;
   isRedBomb = false;
 
-  toggleFlag() {
-    this.isFlag = !this.isFlag;
-  }
-
-  toggleVisibility(value?: boolean) {
-    this.isVisible = !this.isVisible;
-  }
-
   get isRightFlag(): boolean {
     return this.isBomb && this.isFlag;
   }
@@ -48,5 +40,9 @@ export class Square {
     }
 
     return 'closed';
+  }
+
+  toggleFlag(): void {
+    this.isFlag = !this.isFlag;
   }
 }
