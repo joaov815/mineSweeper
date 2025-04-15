@@ -40,46 +40,6 @@ export class AppComponent implements OnInit {
     this.reset();
   }
 
-  reset(): void {
-    clearInterval(this.gameInterval);
-
-    this.gameStarted.set(false);
-    this.isLoading.set(true);
-    this.gameTimeInSeconds.set(0);
-
-    this.hasWon.set(false);
-    this.hasExploded.set(false);
-    this.bombsIndexes = new Set();
-    this._setSquares();
-
-    this.isLoading.set(false);
-  }
-
-  private _checkHasWon(): void {
-    const hasWon =
-      this.squares.filter((s) => !s.isVisible).length === this.bombsQuantity();
-
-    if (hasWon) this._endGame(hasWon);
-  }
-
-  private _endGame(hasWon: boolean) {
-    this.hasWon.set(hasWon);
-    this.hasExploded.set(!hasWon);
-
-    clearInterval(this.gameInterval);
-
-    if (this.hasExploded()) {
-      this.squares.forEach((sq) => {
-        sq.isVisible = sq.isVisible || sq.isBomb;
-      });
-    } else {
-      this.squares.forEach((s) => {
-        if (s.isBomb) s.isFlag = true;
-      });
-      this.flagsPlaced.set(this.bombsQuantity())
-    }
-  }
-
   select(square: Square): void {
     if (square.isFlag || this.gameOver()) return;
     if (!this.gameTimeInSeconds() && !this.gameStarted()) this._startTimer();
@@ -108,6 +68,46 @@ export class AppComponent implements OnInit {
     square.toggleFlag();
 
     this.flagsPlaced.update((v) => (square.isFlag ? v + 1 : v - 1));
+  }
+
+  reset(): void {
+    clearInterval(this.gameInterval);
+
+    this.gameStarted.set(false);
+    this.isLoading.set(true);
+    this.gameTimeInSeconds.set(0);
+    this.flagsPlaced.set(0);
+
+    this.hasWon.set(false);
+    this.hasExploded.set(false);
+    this._setSquares();
+
+    this.isLoading.set(false);
+  }
+
+  private _checkHasWon(): void {
+    const hasWon =
+      this.squares.filter((s) => !s.isVisible).length === this.bombsQuantity();
+
+    if (hasWon) this._endGame(hasWon);
+  }
+
+  private _endGame(hasWon: boolean) {
+    this.hasWon.set(hasWon);
+    this.hasExploded.set(!hasWon);
+
+    clearInterval(this.gameInterval);
+
+    if (this.hasExploded()) {
+      this.squares.forEach((sq) => {
+        sq.isVisible = sq.isVisible || sq.isBomb;
+      });
+    } else {
+      this.squares.forEach((s) => {
+        if (s.isBomb) s.isFlag = true;
+      });
+      this.flagsPlaced.set(this.bombsQuantity());
+    }
   }
 
   private _startTimer(): void {
@@ -158,32 +158,32 @@ export class AppComponent implements OnInit {
     return result;
   }
 
-  private _setBombsPosition(): void {
-    while (this.bombsIndexes.size < this.bombsQuantity()) {
-      const column = (Math.random() * (this.boardDimension - 1)).toFixed(0);
-      const row = (Math.random() * (this.boardDimension - 1)).toFixed(0);
-
-      this.bombsIndexes.add(`${row},${column}`);
-    }
-  }
-
   private _setSquares(): void {
     this.squares = [];
-    this._setBombsPosition();
+    this.bombsIndexes = new Set();
 
+    const getRandomAxis = () =>
+      (Math.random() * (this.boardDimension - 1)).toFixed(0);
+
+    // set bombs position
+    while (this.bombsIndexes.size < this.bombsQuantity()) {
+      this.bombsIndexes.add(`${getRandomAxis()},${getRandomAxis()}`);
+    }
+
+    // set squares
     for (let row = 0; row < this.boardDimension; row++) {
       for (let column = 0; column < this.boardDimension; column++) {
-        if (this.bombsIndexes.has(`${row},${column}`)) {
-          this.squares.push(new Square(row, column, -1));
-        } else {
-          const around = this._getPositionsAround(row, column);
+        let squareValue = 0;
 
-          const bombsAround = around.filter((c) =>
+        if (this.bombsIndexes.has(`${row},${column}`)) {
+          squareValue = -1;
+        } else {
+          squareValue = this._getPositionsAround(row, column).filter((c) =>
             this.bombsIndexes.has(c)
           ).length;
-
-          this.squares.push(new Square(row, column, bombsAround));
         }
+
+        this.squares.push(new Square(row, column, squareValue));
       }
     }
   }
