@@ -1,17 +1,7 @@
 <div class="counter">
+  @for(digit of valueStr(); track $index) {
   <div
-    [ngStyle]="{
-      'background-image': 'url(\'/images/' + 'd0' + '.svg\')'
-    }"
+    [ngStyle]="{ 'background-image': 'url(\'/images/d' + digit + '.svg\')' }"
   ></div>
-  <div
-    [ngStyle]="{
-      'background-image': 'url(\'/images/' + 'd0' + '.svg\')'
-    }"
-  ></div>
-  <div
-    [ngStyle]="{
-      'background-image': 'url(\'/images/' + 'd0' + '.svg\')'
-    }"
-  ></div>
+  }
 </div>

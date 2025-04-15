@@ -1,7 +1,7 @@
 <main>
   <div class="container">
     <div class="top-bar">
-      <app-counter />
+      <app-counter [value]="bombsLeft()" />
 
       <div
         class="face"
@@ -14,7 +14,7 @@
         (click)="reset()"
       ></div>
 
-      <app-counter />
+      <app-counter [value]="gameTimeInSeconds()" />
     </div>
 
     <div class="board">

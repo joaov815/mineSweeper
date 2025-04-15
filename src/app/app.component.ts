@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, computed, OnInit, signal } from '@angular/core';
 import { NgClass, NgStyle } from '@angular/common';
 
 import { CounterComponent } from './counter/counter.component';
@@ -21,20 +21,33 @@ export class AppComponent implements OnInit {
   title = 'minesweeper';
   squares: Square[] = [];
   level = signal<GameLevelEnum>(GameLevelEnum.EASY);
-  bombsIndexes: Set<string> = new Set();
   hasExploded = signal(false);
   hasWon = signal(false);
   loading = signal(false);
   isLoading = signal(false);
+  gameTimeInSeconds = signal(0);
+  bombsIndexes: Set<string> = new Set();
   boardDimension = 9;
-  bombsQuantity = 10;
+  bombsQuantity = signal(10);
+  flagsPlaced = signal(0);
+  bombsLeft = computed(() =>
+    Math.max(this.bombsQuantity() - this.flagsPlaced(), 0)
+  );
+  gameInterval!: any;
 
   ngOnInit(): void {
     this.reset();
   }
 
+  startTimer(): void {
+    this.gameInterval = setInterval(() => {
+      this.gameTimeInSeconds.update((val) => val + 1);
+    }, 1000);
+  }
+
   reset(): void {
     this.isLoading.set(true);
+    this.gameTimeInSeconds.set(0);
 
     this.hasExploded.set(false);
     this.bombsIndexes = new Set();
@@ -44,12 +57,14 @@ export class AppComponent implements OnInit {
   }
 
   select(square: Square): void {
+    if (!this.gameTimeInSeconds()) this.startTimer();
     if (square.isFlag || this.hasExploded()) return;
 
     square.isVisible = true;
 
     if (square.isBomb) {
       this.hasExploded.set(true);
+      clearInterval(this.gameInterval);
 
       this.squares.forEach((sq) => {
         if (sq.isBomb) {
@@ -107,13 +122,12 @@ export class AppComponent implements OnInit {
   }
 
   setSquares(): void {
-    const squares: Square[] = [];
     this.setBombsPosition();
 
     for (let row = 0; row < this.boardDimension; row++) {
       for (let column = 0; column < this.boardDimension; column++) {
         if (this.bombsIndexes.has(`${row},${column}`)) {
-          squares.push(new Square(row, column, -1));
+          this.squares.push(new Square(row, column, -1));
         } else {
           const around = this.getPositionsAround(row, column);
 
@@ -121,16 +135,14 @@ export class AppComponent implements OnInit {
             this.bombsIndexes.has(c)
           ).length;
 
-          squares.push(new Square(row, column, bombsAround));
+          this.squares.push(new Square(row, column, bombsAround));
         }
       }
     }
-
-    this.squares = squares;
   }
 
   setBombsPosition(): void {
-    while (this.bombsIndexes.size < this.bombsQuantity) {
+    while (this.bombsIndexes.size < this.bombsQuantity()) {
       const column = (Math.random() * (this.boardDimension - 1)).toFixed(0);
       const row = (Math.random() * (this.boardDimension - 1)).toFixed(0);
 
@@ -144,5 +156,6 @@ export class AppComponent implements OnInit {
     if (this.hasExploded()) return;
 
     square.toggleFlag();
+    this.flagsPlaced.update((v) => (square.isFlag ? v + 1 : v - 1));
   }
 }
