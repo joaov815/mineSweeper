@@ -1,23 +1,28 @@
 <main>
   <div>
-    <button (click)="reset()">{{ hasExploded() || hasWon() ? "Restart" : "Start" }}</button>
+    <button (click)="reset()">
+      {{ hasExploded() ? "Restart" : "Start" }}
+    </button>
   </div>
+
   @if(isLoading()) {
   <div>loading...</div>
   } @else {
   <div class="board">
-    @for(row of squares(); let r = $index; track r) { @for(square of row; let c
-    = $index; track c) {
+    @for(square of squares; let c = $index; track c) {
     <div
       class="square"
       (click)="select(square)"
-      (contextmenu)="square.toggleFlag($event)"
+      (contextmenu)="toggleFlag(square, $event)"
     >
-      @if(square.isVisible) {
-      {{ square.value }}
-      } @else if(square.isFlag) { F }
+      <div
+        class="square-bg"
+        [ngStyle]="{
+          'background-image': 'url(\'/images/' + square.bg + '.svg\')'
+        }"
+      ></div>
     </div>
-    } }
+    }
   </div>
   }
 </main>

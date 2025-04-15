@@ -1,3 +1,9 @@
+$b0: #121212;
+$b1: #171717;
+$b2: #1c1c1c;
+$b3: #202224;
+$b4: #3b4042;
+
 main {
   display: flex;
   flex-direction: column;
@@ -10,12 +16,42 @@ main {
   display: grid;
   grid-template-columns: repeat(9, 50px);
   grid-template-rows: repeat(9, 50px);
-  gap: 1px;
+  // gap: 1px;
 }
 
 .square {
-  border: 1px solid black;
+  // border: 1px solid black;
   display: flex;
   justify-content: center;
   align-items: center;
+  font-size: 10px;
+  line-height: 23px;
+
+  .square-bg {
+    background-size: cover; /* Optional: makes it fit perfectly */
+    background-repeat: no-repeat; /* Optional: avoid repeating */
+    background-position: center; /* Optional: center it */
+    height: 100%;
+    width: 100%;
+  }
+
+  .closed {
+    background-image: url("/images/closed.svg");
+  }
+
+  .empty {
+    background-image: url("/images/s_0.svg");
+  }
+
+  .flag {
+    background-image: url("/images/flag.svg");
+  }
+
+  .mine {
+    background-image: url("/images/mine.svg");
+  }
+
+  .red {
+    background-image: url("/images/mine_red.svg");
+  }
 }

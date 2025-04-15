@@ -1,36 +1,6 @@
 import { Component, computed, OnInit, signal } from '@angular/core';
-
-class Square {
-  constructor(
-    public row: number,
-    public column: number,
-    public value: number
-  ) {}
-
-  isVisible = false;
-  isFlag = false;
-
-  toggleFlag(e?: MouseEvent) {
-    e?.preventDefault();
-    this.isFlag = !this.isFlag;
-  }
-
-  toggleVisibility() {
-    this.isVisible = !this.isVisible;
-  }
-
-  get isRightFlag(): boolean {
-    return this.isBomb && this.isFlag;
-  }
-
-  get isBomb(): boolean {
-    return this.value === -1;
-  }
-
-  get isZero(): boolean {
-    return this.value === 0;
-  }
-}
+import { Square } from './square';
+import { NgClass, NgStyle } from '@angular/common';
 
 enum GameLevelEnum {
   EASY,
@@ -41,36 +11,26 @@ enum GameLevelEnum {
 @Component({
   selector: 'app-root',
   standalone: true,
+  imports: [NgStyle, NgClass],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
 export class AppComponent implements OnInit {
   title = 'minesweeper';
-  squares = signal<Square[][]>([]);
+  squares: Square[] = [];
   level = signal<GameLevelEnum>(GameLevelEnum.EASY);
   bombsIndexes: Set<string> = new Set();
   hasExploded = signal(false);
   loading = signal(false);
   isLoading = signal(false);
-  hasWon = signal(false);
+  boardDimension = 9;
+  bombsQuantity = 10;
 
-  get rows(): number {
-    return [9, 20, 30][this.level()];
-  }
-
-  get columns(): number {
-    return [9, 20, 30][this.level()];
-  }
-
-  get bombsQuantity(): number {
-    return [1, 40, 99][this.level()];
-  }
-
-  ngOnInit() {
+  ngOnInit(): void {
     this.reset();
   }
 
-  reset() {
+  reset(): void {
     this.isLoading.set(true);
 
     this.hasExploded.set(false);
@@ -80,13 +40,20 @@ export class AppComponent implements OnInit {
     this.isLoading.set(false);
   }
 
-  select(square: Square) {
-    if (square.isFlag) return;
+  select(square: Square): void {
+    if (square.isFlag || this.hasExploded()) return;
 
-    square.toggleVisibility();
+    square.isVisible = true;
 
     if (square.isBomb) {
       this.hasExploded.set(true);
+
+      this.squares.forEach((sq) => {
+        if (sq.isBomb) {
+          sq.isVisible = true;
+        }
+      });
+      square.isRedBomb = true
     } else if (square.isZero) {
       this.setZero(square);
     }
@@ -94,11 +61,7 @@ export class AppComponent implements OnInit {
 
   setZero({ row, column }: Square): void {
     const squaresAround = this.getPositionsAround(row, column).map(
-      (position) => {
-        const [pRow, pColumn] = position.split(',').map(Number);
-
-        return this.squares()[pRow][pColumn];
-      }
+      (position) => this.squares.find((s) => s.position === position)!
     );
 
     for (const squareAround of squaresAround) {
@@ -117,48 +80,37 @@ export class AppComponent implements OnInit {
   }
 
   getPositionsAround(row: number, column: number): string[] {
-    const rPositions = [
-      row,
-      row + 1, // top
-      row - 1, // bottom
-    ];
-    const cPositions = [
-      column,
-      column - 1, // left
-      column + 1, // right
-    ];
-
-    const pos = [];
+    const rPositions = [row, row + 1, row - 1];
+    const cPositions = [column, column - 1, column + 1];
+    const result = [];
 
     for (const rPosition of rPositions) {
-      if (rPosition < 0 || rPosition >= this.rows) continue;
+      if (rPosition < 0 || rPosition >= this.boardDimension) continue;
 
       for (const cPosition of cPositions) {
         if (
           cPosition < 0 ||
-          cPosition >= this.columns ||
+          cPosition >= this.boardDimension ||
           (cPosition === column && rPosition === row)
         ) {
           continue;
         }
 
-        pos.push(`${rPosition},${cPosition}`);
+        result.push(`${rPosition},${cPosition}`);
       }
     }
 
-    return pos;
+    return result;
   }
 
-  setSquares() {
-    const squares: Square[][] = [];
+  setSquares(): void {
+    const squares: Square[] = [];
     this.setBombsPosition();
 
-    for (let row = 0; row < this.rows; row++) {
-      squares[row] ??= [];
-
-      for (let column = 0; column < this.columns; column++) {
+    for (let row = 0; row < this.boardDimension; row++) {
+      for (let column = 0; column < this.boardDimension; column++) {
         if (this.bombsIndexes.has(`${row},${column}`)) {
-          squares[row].push(new Square(row, column, -1));
+          squares.push(new Square(row, column, -1));
         } else {
           const around = this.getPositionsAround(row, column);
 
@@ -166,20 +118,28 @@ export class AppComponent implements OnInit {
             this.bombsIndexes.has(c)
           ).length;
 
-          squares[row].push(new Square(row, column, bombsAround));
+          squares.push(new Square(row, column, bombsAround));
         }
       }
     }
 
-    this.squares.set(squares);
+    this.squares = squares;
   }
 
-  setBombsPosition() {
+  setBombsPosition(): void {
     while (this.bombsIndexes.size < this.bombsQuantity) {
-      const column = (Math.random() * this.columns).toFixed(0);
-      const row = (Math.random() * this.rows).toFixed(0);
+      const column = (Math.random() * this.boardDimension).toFixed(0);
+      const row = (Math.random() * this.boardDimension).toFixed(0);
 
       this.bombsIndexes.add(`${row},${column}`);
     }
+  }
+
+  toggleFlag(square: Square, event: MouseEvent) {
+    event.preventDefault();
+
+    if (this.hasExploded()) return;
+
+    square.toggleFlag();
   }
 }
