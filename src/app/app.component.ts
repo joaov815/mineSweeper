@@ -71,7 +71,7 @@ export class AppComponent implements OnInit {
   toggleFlag(square: Square, event: MouseEvent) {
     event.preventDefault();
 
-    if (this.hasExploded()) return;
+    if (this.gameOver() || square.isVisible) return;
     if (!this.gameTimeInSeconds() && !this.gameStarted()) this._startTimer();
 
     square.toggleFlag();
