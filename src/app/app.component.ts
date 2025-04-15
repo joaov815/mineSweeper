@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { NgClass, NgStyle } from '@angular/common';
 
+import { CounterComponent } from './counter/counter.component';
 import { Square } from './square';
 
 enum GameLevelEnum {
@@ -12,7 +13,7 @@ enum GameLevelEnum {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [NgStyle, NgClass],
+  imports: [CounterComponent, NgStyle, NgClass],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })

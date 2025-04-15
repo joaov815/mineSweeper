@@ -1,7 +1,8 @@
 <main>
   <div class="container">
     <div class="top-bar">
-      <div class="counter">000</div>
+      <app-counter />
+
       <div
         class="face"
         [ngClass]="{
@@ -12,7 +13,8 @@
         }"
         (click)="reset()"
       ></div>
-      <div class="counter">010</div>
+
+      <app-counter />
     </div>
 
     <div class="board">

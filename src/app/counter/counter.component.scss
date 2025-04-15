@@ -1,0 +1,18 @@
+.counter {
+  display: flex;
+  gap: 2px;
+  border-top-color: #fff;
+  border-left-color: #fff;
+  border-bottom-color: #404040;
+  border-right-color: #404040;
+  background-image: url("/images/nums_background.svg");
+  padding: 2px;
+
+  div {
+    height: 39.375px;
+    width: 20.625px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+}
